@@ -1,180 +1,193 @@
 # RAG-Based Question Answering System
 
 ## Overview
-This project implements a **Retrieval-Augmented Generation (RAG)** based Question Answering system using **FastAPI**. The system allows users to upload documents and ask natural language questions that are answered strictly using the uploaded document content.
 
-The project is designed as an **API-first system** with an explicit implementation of document ingestion, chunking, embedding, retrieval, and answer generation logic. No black-box or default RAG templates are used.
+This project implements a **Retrieval-Augmented Generation (RAG)** based Question Answering system
+using **FastAPI**. The system allows users to upload documents and ask natural language questions, and it
+generates answers strictly grounded in the uploaded document content.
 
----
+The focus of this project is on **clarity, explainability, and modular design** , avoiding black-box RAG
+templates and explicitly implementing each stage of the pipeline.
 
-## Features
-- Upload documents in **PDF** and **TXT** formats
-- Asynchronous document ingestion using background jobs
-- Text chunking with overlap
-- Embedding generation using SentenceTransformers
-- Vector storage using FAISS (local vector database)
-- Semantic similarity-based retrieval
-- Confidence-based filtering to reduce hallucinations
-- Answer generation using LLaMA via Groq
-- Source citations attached to answers
-- Metrics endpoint for monitoring system behavior
+## Key Features
 
----
-
+```
+Upload documents in PDF and TXT formats
+Asynchronous document ingestion using background tasks
+Text chunking with fixed size and overlap
+Embedding generation using SentenceTransformers
+Vector storage using FAISS (local vector database)
+Semantic similarity-based retrieval
+Confidence-based filtering to reduce hallucinations
+Answer generation using LLaMA via Groq API
+Source citations for every generated answer
+Metrics endpoint for system observability
+```
 ## Tech Stack
-- **Backend**: FastAPI  
-- **Embeddings**: SentenceTransformers (`all-MiniLM-L6-v2`)  
-- **Vector Store**: FAISS (CPU)  
-- **LLM**: LLaMA (via Groq API)  
-- **Validation**: Pydantic  
-- **Metrics**: In-memory metrics tracking  
-- **Language**: Python 3.10+
 
----
+```
+Backend Framework : FastAPI
+Embedding Model : SentenceTransformers (all-MiniLM-L6-v2)
+Vector Store : FAISS (CPU)
+LLM : LLaMA (via Groq)
+Validation : Pydantic
+Metrics : In-memory aggregation
+Language : Python 3.10+
+```
+## System Architecture
 
-## Architecture
-The system follows a modular RAG architecture consisting of:
-- An asynchronous document ingestion pipeline
-- A query-time retrieval and generation pipeline
-- A metrics collection pipeline
+The system follows a modular RAG architecture with three main flows:
 
-📌 **Architecture Diagram:**  
-`docs/architecture.png`
+```
+Document ingestion pipeline (asynchronous)
+Query-time retrieval and answer generation pipeline
+```
+#### • • • • • • • • • • • • • • • • • • •
 
----
 
-## API Endpoints
+```
+Metrics collection and exposure pipeline
+```
+<INSERT ARCHITECTURE DIAGRAM IMAGE HERE>
 
-### 1. Upload Document
-**POST** `/upload`
+## API Design
+
+### Upload Document
+
+**POST** /upload
 
 Uploads a document and triggers background ingestion.
 
-Supported formats:
-- PDF
-- TXT
+Supported formats: - PDF - TXT
 
----
+### Ask Question
 
-### 2. Ask Question
-**POST** `/ask`
+**POST** /ask
 
-Request body:
-```json
-{
-  "question": "What is the main topic of the document?"
+Request Body:
+
+#### {
+
+```
+"question":"What is the main topic of the document?"
 }
-METRICS
+```
+Response:
 
-GET /metrics
+#### {
 
-Returns runtime metrics including:
+```
+"answer": "Generated answer based on document context",
+"citations": [
+{
+"source": "example.pdf",
+"chunk_id": 2
+}
+]
+}
+```
+### Metrics
 
-- Total number of /ask requests
-- Average response latency
-- Average similarity score of retrieved chunks
+**GET** /metrics
 
-All metrics are tracked in-memory and exposed via the /metrics endpoint.
+#### •
 
-------------------------------------------------------------
 
-CHUNKING STRATEGY
+Returns runtime metrics such as: - Total number of queries - Average response latency - Average similarity
+score
 
-A fixed chunk size with overlap is used to balance:
+#### <INSERT METRICS DESIGN IMAGE HERE>
 
-- Semantic completeness of text
-- Retrieval precision
-- Prompt size limitations of the LLM
+## Chunking Strategy
 
-Overlapping chunks help preserve context across chunk boundaries and reduce information loss during retrieval.
+A fixed chunk size with overlap is used to balance: - Semantic completeness - Retrieval precision - LLM
+context window limits
 
-------------------------------------------------------------
+Overlapping chunks help preserve context across boundaries and improve retrieval quality.
 
-RETRIEVAL FAILURE CASE
+## Retrieval Failure Case
 
-A known retrieval failure case occurs when:
+One observed failure case occurs when: - The user asks a vague or out-of-scope question - Retrieved chunks
+have low similarity scores
 
-- The user asks a vague, ambiguous, or out-of-scope question
-- Retrieved chunks have similarity scores below the confidence threshold
+In such scenarios, the system safely responds with **"I don't know"** instead of generating hallucinated
+answers.
 
-In such situations, the system safely responds with:
+## Metrics Tracked
 
-"I don't know"
+The system tracks the following metrics: - Total /ask request count - Average response latency - Average
+similarity score of retrieved chunks
 
-This prevents hallucinated or unsupported answers.
+Metrics are exposed via the /metrics endpoint for transparency and evaluation.
 
-------------------------------------------------------------
+## Setup Instructions
 
-METRICS TRACKED
+### 1. Clone the Repository
 
-The system tracks the following metrics:
-
-- Total number of /ask requests
-- Average response latency
-- Average similarity score of retrieved chunks
-
-All metrics are exposed via the /metrics endpoint.
-
-------------------------------------------------------------
-
-SETUP INSTRUCTIONS
-
-1. Clone the repository
-
-git clone <your-repo-url>
+```
+gitclone <your-repo-url>
 cd RAG-QA-System
+```
+### 2. Create Virtual Environment
 
-2. Create a virtual environment
+```
+python -m venvvenv
+```
 
-python -m venv venv
-source venv/bin/activate
-Windows: venv\Scripts\activate
+Activate: - Windows: venv\\Scripts\\activate - Linux/Mac: source venv/bin/activate
 
-3. Install dependencies
+### 3. Install Dependencies
 
-pip install -r requirements.txt
+```
+pipinstall -r requirements.txt
+```
+### 4. Set Environment Variable
 
-4. Set environment variable
-
-Linux / macOS:
+```
 export GROQ_API_KEY=your_api_key_here
-
+```
 Windows:
-setx GROQ_API_KEY "your_api_key_here"
 
-5. Run the application
+```
+setxGROQ_API_KEY"your_api_key_here"
+```
+### 5. Run the Server
 
-uvicorn app.main:app --reload
+```
+uvicornapp.main:app--reload
+```
+API documentation is available at:
 
-------------------------------------------------------------
-
-API DOCUMENTATION
-
-Swagger UI is available at:
-
+```
 http://127.0.0.1:8000/docs
+```
+## Design Constraints and Choices
 
-------------------------------------------------------------
+```
+No heavy RAG frameworks used
+Local FAISS vector store for simplicity
+Explicit pipeline implementation
+API-first design without UI
+```
+## Future Improvements
 
-CONSTRAINTS AND DESIGN CHOICES
+```
+Hybrid retrieval (BM25 + embeddings)
+Persistent metrics storage
+Authentication and advanced rate limiting
+```
+#### • • • • • • •
 
-- No heavy RAG frameworks were used
-- Local FAISS vector database chosen for simplicity
-- Explicit implementation of each pipeline stage
-- API-first design with no mandatory UI layer
 
-------------------------------------------------------------
+```
+Streaming LLM responses
+Optional UI layer
+```
+## Conclusion
 
-FUTURE IMPROVEMENTS
+This project demonstrates a complete, explainable RAG-based Question Answering system with strong
+emphasis on retrieval quality, system transparency, and evaluation readiness. It is designed to be easy to
+understand, extend, and evaluate.
 
-- Hybrid retrieval (BM25 + embeddings)
-- Persistent metrics storage
-- Authentication and advanced rate limiting
-- Streaming LLM responses
-- Optional UI layer (Streamlit or frontend client)
 
-------------------------------------------------------------
 
-CONCLUSION
-
-This project demonstrates a complete, explainable RAG-based Question Answering system with strong emphasis on retrieval quality, system transparency, metrics awareness, and evaluation readiness.
