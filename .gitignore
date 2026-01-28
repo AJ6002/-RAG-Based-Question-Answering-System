@@ -1,11 +1,30 @@
-.htaccess
-css.php
-rpc/
-sites/site*/admin/
-sites/site*/private/
-sites/site*/public/admin/
-sites/site*/public/setup/
-sites/site*/public/theme/
-textpattern/
-HISTORY.txt
-README.txt
+
+---
+
+# 2️⃣ `.gitignore` (VERY IMPORTANT)
+
+```gitignore
+# Virtual environment
+venv/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# FAISS index files
+*.faiss
+*.index
+*.pkl
+
+# Uploaded documents
+data/uploads/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
